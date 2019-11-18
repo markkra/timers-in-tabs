@@ -1,23 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./App.css";
 import Timer from "./components/timer";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
-
-const selectedIndexStorageKey = "selectedIndex";
+import { useSelectedTabIndex } from "./components/timer/hooks/useSelectedTabIndex";
 
 function App() {
-  const initialSelectedIndex = () =>
-    Number(window.localStorage.getItem(selectedIndexStorageKey)) || 0;
-  const [selectedIndex, setSelectedIndex] = useState(initialSelectedIndex);
-
-  const handleSelect = (index, last) => {
-    setSelectedIndex(index);
-  };
-
-  useEffect(() => {
-    window.localStorage.setItem(selectedIndexStorageKey, selectedIndex);
-  }, [selectedIndex]);
+  const { selectedIndex, handleSelect } = useSelectedTabIndex();
 
   return (
     <div className="container">
