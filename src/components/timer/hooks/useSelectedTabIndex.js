@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 
-const selectedIndexStorageKey = "selectedIndex";
-
-export function useSelectedTabIndex() {
+export function useSelectedTabIndex(selectedIndexStorageKey = "selectedIndex") {
   const initialSelectedIndex = () =>
     Number(window.localStorage.getItem(selectedIndexStorageKey)) || 0;
   const [selectedIndex, setSelectedIndex] = useState(initialSelectedIndex);
@@ -11,7 +9,7 @@ export function useSelectedTabIndex() {
   };
   useEffect(() => {
     window.localStorage.setItem(selectedIndexStorageKey, selectedIndex);
-  }, [selectedIndex]);
+  }, [selectedIndex, selectedIndexStorageKey]);
   return {
     selectedIndex,
     handleSelect

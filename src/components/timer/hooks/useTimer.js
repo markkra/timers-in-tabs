@@ -1,70 +1,75 @@
-import { useCallback, useDebugValue, useState, useEffect, useRef } from 'react';
-import formatTimeStamp from 'format-duration';
+import { useCallback, useState, useEffect, useRef } from "react";
 import { useInterval } from "./useInterval";
+import { Enum } from "enumify";
 
-export function useTimer(uniqueTimerId) {
-  const initialTimingEvents = () => JSON.parse(window.localStorage.getItem(uniqueTimerId)) || [];
+class TimerState extends Enum {}
+TimerState.initEnum(["STOPPED", "PAUSED", "RUNNING"]);
+
+function useTimer(uniqueTimerId) {
+  const initialTimingEvents = () =>
+    JSON.parse(window.localStorage.getItem(uniqueTimerId)) || [];
   const [timingEvents, setTimingEvents] = useState(initialTimingEvents);
-  const [displayTime, setDisplayTime] = useState('');
+  const [duration, setTotalDuration] = useState(0);
   const [delay] = useState(1000);
-  const [isRunning, setIsRunning] = useState(false);
+  const [timerState, setTimerState] = useState(TimerState.STOPPED);
   const totalTime = useRef(0);
 
-  function dateFromDateString(dateStr){
+  function dateFromDateString(dateStr) {
     return new Date(dateStr);
   }
 
-  function getDisplayTime(durationMillisecs){
-    return formatTimeStamp(durationMillisecs, { leading: true })
-  }
+  const getTimerState = events => {
+    if (events.length === 0) {
+      return TimerState.STOPPED;
+    }
+    return events.length % 2 === 0 ? TimerState.PAUSED : TimerState.RUNNING;
+  };
 
   useEffect(() => {
     window.localStorage.setItem(uniqueTimerId, JSON.stringify(timingEvents));
-    return () => window.localStorage.setItem(uniqueTimerId, JSON.stringify(timingEvents));
+    return () =>
+      window.localStorage.setItem(uniqueTimerId, JSON.stringify(timingEvents));
   }, [timingEvents, uniqueTimerId]);
 
-  const refreshTimeDisplay = useCallback((events) => {
-    let total = 0;
-    for (let i = 0; i < events.length; i += 2) {
-      const startTime = dateFromDateString(events[i]);
-      const nextDateString = events[i + 1];
-      const stopTime = (nextDateString && dateFromDateString(nextDateString)) || new Date();
-      total += stopTime - startTime;
-    }
-    totalTime.current = total;
+  const refreshTimeDisplay = useCallback(
+    events => {
+      let total = 0;
+      for (let i = 0; i < events.length; i += 2) {
+        const startTime = dateFromDateString(events[i]);
+        const nextDateString = events[i + 1];
+        const stopTime =
+          (nextDateString && dateFromDateString(nextDateString)) || new Date();
+        total += stopTime - startTime;
+      }
+      totalTime.current = total;
 
-    setDisplayTime(getDisplayTime(totalTime.current));
-  },[totalTime]);
+      setTotalDuration(totalTime.current);
+    },
+    [totalTime]
+  );
 
-  const handleReset = () => setTimingEvents([]);
+  const reset = () => setTimingEvents([]);
 
-  const handleClick = () => setTimingEvents([
-    ...timingEvents,
-    new Date()
-  ]);
-
-  const getLabel = () => {
-    if(timingEvents.length === 0){
-      return 'Start';
-    }
-    return timingEvents.length % 2 === 0 ? 'Resume' : 'Pause';
-  };
+  const toggle = () => setTimingEvents([...timingEvents, new Date()]);
 
   useEffect(() => {
     refreshTimeDisplay(timingEvents);
-    setIsRunning(timingEvents.length % 2 !== 0);
-
+    setTimerState(getTimerState(timingEvents));
   }, [refreshTimeDisplay, timingEvents]);
 
-  useInterval(() => {
-    refreshTimeDisplay(timingEvents);
-  }, isRunning ? delay : null);
+  useInterval(
+    () => {
+      refreshTimeDisplay(timingEvents);
+    },
+    timerState ? delay : null
+  );
 
-  useDebugValue(displayTime);
   return {
-    timeDisplay: displayTime,
-    handleClick,
-    handleReset,
-    getLabel,
+    duration: duration,
+    toggle,
+    reset,
+    timerState
   };
 }
+
+export { useTimer as default, TimerState };
