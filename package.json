@@ -40,5 +40,15 @@
     "mockdate": "^2.0.5",
     "react-test-renderer": "^16.12.0",
     "serve": "^11.2.0"
+  },
+  "jest": {
+    "coverageReporters": [
+      "lcov"
+    ],
+    "collectCoverageFrom": [
+      "**/*.spec.{js,jsx}",
+      "!**/node_modules/**",
+      "!**/build/**"
+    ]
   }
 }

@@ -7,6 +7,7 @@ import MockDate from "mockdate";
 
 const testDateTime1 = "November 30, 2019 12:00:00";
 const testDateTime2 = "November 30, 2019 13:00:00";
+const testDateTime3 = "November 30, 2019 13:30:00";
 
 describe("useTimer tests", () => {
   beforeAll(() => {
@@ -51,9 +52,22 @@ describe("useTimer tests", () => {
       result.current.toggle();
     });
 
-    const tenMinutes = 1000 * 60 * 60;
+    const oneHourInMillisecs = 1000 * 60 * 60;
 
     // Assert
-    expect(result.current.duration).toBe(tenMinutes);
+    expect(result.current.duration).toBe(oneHourInMillisecs);
+
+    act(() => {
+      result.current.toggle();
+    });
+
+    act(() => {
+      const testDate3 = new Date(testDateTime3);
+      MockDate.set(testDate3);
+      result.current.toggle();
+    });
+
+    // Assert
+    expect(result.current.duration).toBe(oneHourInMillisecs * 1.5);
   });
 });
